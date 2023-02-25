@@ -1,0 +1,206 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>800</width>
+    <height>500</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Lockifi Control Panel</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="QTabWidget" name="tab_menu">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>30</y>
+      <width>781</width>
+      <height>461</height>
+     </rect>
+    </property>
+    <property name="layoutDirection">
+     <enum>Qt::RightToLeft</enum>
+    </property>
+    <property name="autoFillBackground">
+     <bool>false</bool>
+    </property>
+    <property name="tabPosition">
+     <enum>QTabWidget::North</enum>
+    </property>
+    <property name="tabShape">
+     <enum>QTabWidget::Rounded</enum>
+    </property>
+    <property name="currentIndex">
+     <number>1</number>
+    </property>
+    <property name="elideMode">
+     <enum>Qt::ElideNone</enum>
+    </property>
+    <property name="tabsClosable">
+     <bool>false</bool>
+    </property>
+    <property name="movable">
+     <bool>false</bool>
+    </property>
+    <property name="tabBarAutoHide">
+     <bool>false</bool>
+    </property>
+    <widget class="QWidget" name="access_logger_tab">
+     <attribute name="title">
+      <string>Access Logger</string>
+     </attribute>
+    </widget>
+    <widget class="QWidget" name="user_manager_tab">
+     <attribute name="title">
+      <string>User Manager</string>
+     </attribute>
+     <widget class="QScrollArea" name="scroll_area">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>20</y>
+        <width>551</width>
+        <height>341</height>
+       </rect>
+      </property>
+      <property name="layoutDirection">
+       <enum>Qt::LeftToRight</enum>
+      </property>
+      <property name="widgetResizable">
+       <bool>true</bool>
+      </property>
+      <widget class="QWidget" name="scroll_area_contents">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>0</y>
+         <width>549</width>
+         <height>339</height>
+        </rect>
+       </property>
+      </widget>
+     </widget>
+     <widget class="QLineEdit" name="mac_input">
+      <property name="geometry">
+       <rect>
+        <x>20</x>
+        <y>380</y>
+        <width>201</width>
+        <height>28</height>
+       </rect>
+      </property>
+      <property name="maxLength">
+       <number>17</number>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+      <property name="placeholderText">
+       <string>Enter MAC</string>
+      </property>
+     </widget>
+     <widget class="QLineEdit" name="name_input">
+      <property name="geometry">
+       <rect>
+        <x>230</x>
+        <y>380</y>
+        <width>241</width>
+        <height>28</height>
+       </rect>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+      <property name="placeholderText">
+       <string>Enter Name</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="add_user_btn">
+      <property name="enabled">
+       <bool>false</bool>
+      </property>
+      <property name="geometry">
+       <rect>
+        <x>480</x>
+        <y>380</y>
+        <width>91</width>
+        <height>29</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Add User</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="refresh_btn">
+      <property name="geometry">
+       <rect>
+        <x>600</x>
+        <y>128</y>
+        <width>151</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Refresh List</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="reset_btn">
+      <property name="geometry">
+       <rect>
+        <x>600</x>
+        <y>180</y>
+        <width>151</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Restore Defaults</string>
+      </property>
+     </widget>
+     <widget class="QPushButton" name="load_csv_btn">
+      <property name="geometry">
+       <rect>
+        <x>600</x>
+        <y>230</y>
+        <width>151</width>
+        <height>41</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Load CSV</string>
+      </property>
+     </widget>
+    </widget>
+   </widget>
+   <widget class="QLabel" name="status_text">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>11</y>
+      <width>761</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <pointsize>15</pointsize>
+      <bold>false</bold>
+     </font>
+    </property>
+    <property name="text">
+     <string>Waiting for connection...</string>
+    </property>
+   </widget>
+  </widget>
+ </widget>
+ <tabstops>
+  <tabstop>tab_menu</tabstop>
+ </tabstops>
+ <resources/>
+ <connections/>
+</ui>
