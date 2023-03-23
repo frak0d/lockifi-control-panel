@@ -53,8 +53,7 @@ int main(int argc, char* argv[])
     
     auto show_dialog = [](const QString& text)
     {
-        //show dialog box
-        std::puts(text.toStdString().c_str());
+        QMessageBox::warning(nullptr, "Error", text);
     };
     
     ///////////////////////////////////////////////////////////////////////////
@@ -69,15 +68,13 @@ int main(int argc, char* argv[])
     
     QObject::connect(ui.add_user_btn, &QPushButton::clicked, [&]()
     {
-        if (lockifi::add_user(lock_ip, ui.mac_input->text(), ui.name_input->text()))
+        try
         {
+            lockifi::add_user(lock_ip, ui.mac_input->text(), ui.name_input->text());
             user_list.add(new UserEntry{ui.mac_input->text(), ui.name_input->text()});
             ui.mac_input->clear(); ui.name_input->clear();
         }
-        else
-        {
-            show_dialog("error adding user");
-        }
+        catch (std::exception& e) {show_dialog(e.what());}
     });
     
     ///////////////////////////////////////////////////////////////////////////
@@ -105,10 +102,12 @@ int main(int argc, char* argv[])
         
         while (user_list.entries.size())
         {
-            if (lockifi::remove_user(lock_ip, user_list.entries.back()->getMac()))
+            try
+            {
+                lockifi::remove_user(lock_ip, user_list.entries.back()->getMac());
                 user_list.entries.pop_back();
-            else
-                ++error_count;
+            }
+            catch (...) {++error_count;}
             
             if (error_count > error_threshold)
             {

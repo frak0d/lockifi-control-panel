@@ -2,11 +2,14 @@
 
 #include <QtCore>
 #include <QtWidgets>
+#include "http_api.hpp"
 
 QIcon* edit_icon;
 QIcon* delete_icon;
 QIcon* cancel_icon;
 QIcon* confirm_icon;
+
+extern QString lock_ip;
 
 bool is_valid_mac(const QString& mac);
 bool is_valid_name(const QString& mac);
@@ -99,12 +102,18 @@ UserEntry::UserEntry(QString mac_str, QString name_str, QWidget* parent)
     
     QObject::connect(&del_btn, &QPushButton::clicked, [&]()
     {
-        if (parentWidget()) try
+        try
         {
-            auto user_list = dynamic_cast<UserList*>(parentWidget());
-            if (user_list) user_list->remove(this);
+            lockifi::remove_user(lock_ip, mac.text());
+            
+            if (parentWidget())
+            {
+                auto user_list = dynamic_cast<UserList*>(parentWidget());
+                if (user_list) user_list->remove(this);
+            }
+            else this->~UserEntry();
         }
-        catch(...){}
+        catch (std::exception& e) {QMessageBox::warning(nullptr, "Delete Error", e.what());}
     });
     
     QObject::connect(&edit_btn, &QPushButton::clicked, [&]()
@@ -118,7 +127,13 @@ UserEntry::UserEntry(QString mac_str, QString name_str, QWidget* parent)
             }
             else //confirm mode
             {
-                //send to network
+                try {lockifi::add_user(lock_ip, mac.text(), name.text());}
+                catch(std::exception& e)
+                {
+                    mac.setText(oldmac);
+                    name.setText(oldname);
+                    QMessageBox::warning(nullptr, "Edit Error", e.what());
+                }
             }
         }
         else
