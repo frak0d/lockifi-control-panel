@@ -4,9 +4,10 @@
 #include <string>
 #include <cstring>
 #include <sstream>
-
 #include <QString>
+
 #include <curl/curl.h>
+#include "validity.hpp"
 
 namespace lockifi
 {
@@ -24,6 +25,9 @@ std::pair<long, std::string> get(QString url)
     if (curl)
     {        
         long code=0; std::string body;
+        
+        res = curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT_MS, 750L);
+        if (res != CURLE_OK) goto curl_error;
         
         res = curl_easy_setopt(curl, CURLOPT_URL, url.toStdString().c_str());
         if (res != CURLE_OK) goto curl_error;
@@ -58,15 +62,22 @@ std::pair<long, std::string> get(QString url)
     else throw std::runtime_error{"lockifi::http::get : libcurl initialization faliure"};
     
 curl_error:
-    throw std::runtime_error{"lockifi::http::get : "s+curl_easy_strerror(res)};
+    throw std::runtime_error{"lockifi::http::get : "s + curl_easy_strerror(res)};
 }
 
+}
+
+inline void validate_ip(const QString& ipv4_str)
+{
+    if (not is_valid_ip(ipv4_str))
+        throw std::runtime_error{"invalid ip selected"};
 }
 
 bool ping(QString lock_ip) noexcept
 {
     try
     {
+        validate_ip(lock_ip);
         auto [code,body] = http::get("http://"+lock_ip+"/ping");
         return code == 200 && body == "UwU";
     }
@@ -75,7 +86,7 @@ bool ping(QString lock_ip) noexcept
 
 void add_user(QString lock_ip, QString mac, QString name)
 {
-    mac.replace(':',""); name.replace(' ', '~');
+    validate_ip(lock_ip); mac.replace(':',""); name.replace(' ', '~');
     auto [code,body] = http::get("http://"+lock_ip+"/add_user?mac="+mac+"&name="+name);
     
     if (not (code == 200 and body == "ok"))
@@ -86,7 +97,7 @@ void add_user(QString lock_ip, QString mac, QString name)
 
 void remove_user(QString lock_ip, QString mac)
 {
-    mac.replace(':',"");
+    validate_ip(lock_ip); mac.replace(':',"");
     auto [code,body] = http::get("http://"+lock_ip+"/remove_user?mac="+mac);
     
     if (not (code == 200 and body == "ok"))
@@ -97,7 +108,7 @@ void remove_user(QString lock_ip, QString mac)
 
 QString check_user(QString lock_ip, QString mac)
 {
-    mac.replace(':',"");
+    validate_ip(lock_ip); mac.replace(':',"");
     auto [code,body] = http::get("http://"+lock_ip+"/check_user?mac="+mac);
     if (code == 200) return body.c_str();
     else throw std::runtime_error{"lockifi: unable to check for user, code "+std::to_string(code)+" returned"};
@@ -105,6 +116,7 @@ QString check_user(QString lock_ip, QString mac)
 
 auto user_list(QString lock_ip)
 {
+    validate_ip(lock_ip);
     std::map<QString, QString> user_list;
     auto [code,body] = http::get("http://"+lock_ip+"/user_list");
     
@@ -125,6 +137,7 @@ auto user_list(QString lock_ip)
 
 std::string access_logs(QString lock_ip)
 {
+    validate_ip(lock_ip);
     auto [code,body] = http::get("http://"+lock_ip+"/access_logs");
     if (code == 200) return body;
     else throw std::runtime_error{"lockifi: unable to fetch access logs, code "+std::to_string(code)+" returned"};

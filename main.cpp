@@ -7,31 +7,24 @@
 #include <thread>
 #include <fstream>
 #include <sstream>
+#include <ranges>
 #include <iostream>
 #include <algorithm>
 #include <filesystem>
 #include <string_view>
 
-#include <ui_main.h>
-#include "http_api.hpp"
-#include "UserList.hpp"
-
 #include <Qt>
 #include <QtCore>
 #include <QtWidgets>
 
+#include <ui_main.h>
+
+#include "validity.hpp"
+#include "http_api.hpp"
+#include "UserList.hpp"
+
 using namespace std::literals;
 namespace fs = std::filesystem;
-
-bool is_valid_mac(const QString& mac)
-{
-    return mac.length() == 17;
-}
-
-bool is_valid_name(const QString& name)
-{
-    return name.size();
-}
 
 QString lock_ip;
 
@@ -55,6 +48,33 @@ int main(int argc, char* argv[])
     {
         QMessageBox::warning(nullptr, "Error", text);
     };
+    
+    ///////////////////////////////////////////////////////////////////////////
+    
+    QObject::connect(ui.scan_btn, &QPushButton::clicked, [&]()
+    {
+        ui.scan_btn->setEnabled(false);
+        ui.ip_combobox->setEnabled(false);
+        
+        QStringList online_locks;
+        QString ip_prefix  = "192.168.43.%1"; //get actual ip here
+        std::array<std::future<bool>, 256> results;
+        
+        for (uint i=0 ; i < results.size() ; ++i)
+            results[i] = std::async(lockifi::ping, ip_prefix.arg(i));
+        
+        for (uint i=0 ; i < results.size() ; ++i)
+            if (results[i].get()) online_locks.push_back(ip_prefix.arg(i));
+        
+        ui.ip_combobox->clear();
+        ui.ip_combobox->addItems(online_locks);
+        
+        ui.scan_btn->setEnabled(true);
+        ui.ip_combobox->setEnabled(true);
+    });
+    
+    QObject::connect(ui.ip_combobox, &QComboBox::currentTextChanged, [](const QString& ip)
+                                                                        {lock_ip = ip;});
     
     ///////////////////////////////////////////////////////////////////////////
     

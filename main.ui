@@ -255,23 +255,45 @@
      </widget>
     </widget>
    </widget>
-   <widget class="QLabel" name="status_text">
+   <widget class="QComboBox" name="ip_combobox">
     <property name="geometry">
      <rect>
-      <x>20</x>
-      <y>11</y>
-      <width>761</width>
-      <height>41</height>
+      <x>140</x>
+      <y>15</y>
+      <width>201</width>
+      <height>31</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="scan_btn">
+    <property name="geometry">
+     <rect>
+      <x>350</x>
+      <y>15</y>
+      <width>71</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>SCAN</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="ip_label">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>15</y>
+      <width>111</width>
+      <height>31</height>
      </rect>
     </property>
     <property name="font">
      <font>
-      <pointsize>15</pointsize>
-      <bold>false</bold>
+      <pointsize>12</pointsize>
      </font>
     </property>
     <property name="text">
-     <string>Waiting for connection...</string>
+     <string>Select Server:</string>
     </property>
    </widget>
   </widget>
