@@ -14,5 +14,5 @@ endif()
 add_executable(lockifi-control-panel main.cpp)
 
 find_package(CURL REQUIRED)
-find_package(Qt5 REQUIRED COMPONENTS Core Widgets)
-target_link_libraries(lockifi-control-panel Qt::Core Qt::Widgets curl)
+find_package(Qt5 REQUIRED COMPONENTS Core Widgets Network)
+target_link_libraries(lockifi-control-panel Qt::Core Qt::Widgets Qt::Network curl)

@@ -17,7 +17,7 @@ namespace http
 
 using namespace std::literals::string_literals;
 
-std::pair<long, std::string> get(QString url)
+std::pair<long, std::string> get(QString url, long timeout_ms=1000)
 {
     CURLcode res;
     CURL* curl = curl_easy_init();
@@ -26,7 +26,7 @@ std::pair<long, std::string> get(QString url)
     {        
         long code=0; std::string body;
         
-        res = curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT_MS, 750L);
+        res = curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT_MS, timeout_ms);
         if (res != CURLE_OK) goto curl_error;
         
         res = curl_easy_setopt(curl, CURLOPT_URL, url.toStdString().c_str());
@@ -78,7 +78,7 @@ bool ping(QString lock_ip) noexcept
     try
     {
         validate_ip(lock_ip);
-        auto [code,body] = http::get("http://"+lock_ip+"/ping");
+        auto [code,body] = http::get("http://"+lock_ip+"/ping", 500);
         return code == 200 && body == "UwU";
     }
     catch(...) {return false;}

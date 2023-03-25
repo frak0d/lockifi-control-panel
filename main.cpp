@@ -16,6 +16,7 @@
 #include <Qt>
 #include <QtCore>
 #include <QtWidgets>
+#include <QtNetwork>
 
 #include <ui_main.h>
 
@@ -27,6 +28,33 @@ using namespace std::literals;
 namespace fs = std::filesystem;
 
 QString lock_ip;
+
+auto local_ip_prefixes() // returns list of local ip's with last part replaced with %1 eg. 192.168.43.%1
+{
+    QStringList prefixes;
+    for (const QNetworkInterface& netInterface : QNetworkInterface::allInterfaces())
+    {
+        QNetworkInterface::InterfaceFlags flags = netInterface.flags();
+        
+        if ((flags & QNetworkInterface::IsRunning) && !(flags & QNetworkInterface::IsLoopBack))
+        {
+            for (const QNetworkAddressEntry& address : netInterface.addressEntries())
+            {
+                if (address.ip().protocol() == QAbstractSocket::IPv4Protocol)
+                {
+                    auto ip_str = address.ip().toString();
+                    auto ip_end = ip_str.split('.').last();
+                    
+                    ip_str.truncate(ip_str.length()-ip_end.length());
+                    ip_str.append("%1");
+                    
+                    prefixes += ip_str;
+                }
+            }
+        }
+    }
+    return prefixes;
+}
 
 int main(int argc, char* argv[])
 {
@@ -53,24 +81,21 @@ int main(int argc, char* argv[])
     
     QObject::connect(ui.scan_btn, &QPushButton::clicked, [&]()
     {
-        ui.scan_btn->setEnabled(false);
-        ui.ip_combobox->setEnabled(false);
-        
         QStringList online_locks;
-        QString ip_prefix  = "192.168.43.%1"; //get actual ip here
-        std::array<std::future<bool>, 256> results;
         
-        for (uint i=0 ; i < results.size() ; ++i)
-            results[i] = std::async(lockifi::ping, ip_prefix.arg(i));
-        
-        for (uint i=0 ; i < results.size() ; ++i)
-            if (results[i].get()) online_locks.push_back(ip_prefix.arg(i));
+        for (const QString& ip_prefix : local_ip_prefixes())
+        {
+            std::array<std::future<bool>, 256> results;
+            
+            for (uint i=0 ; i < results.size() ; ++i)
+                results[i] = std::async(lockifi::ping, ip_prefix.arg(i));
+            
+            for (uint i=0 ; i < results.size() ; ++i)
+                if (results[i].get()) online_locks.push_back(ip_prefix.arg(i));
+        }
         
         ui.ip_combobox->clear();
         ui.ip_combobox->addItems(online_locks);
-        
-        ui.scan_btn->setEnabled(true);
-        ui.ip_combobox->setEnabled(true);
     });
     
     QObject::connect(ui.ip_combobox, &QComboBox::currentTextChanged, [](const QString& ip)
