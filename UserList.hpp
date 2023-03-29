@@ -16,8 +16,8 @@ bool is_valid_name(const QString& mac);
 
 class UserEntry : public QWidget
 {
-    bool editMode;
-    bool cancelMode;
+    bool editMode{0};
+    bool cancelMode{1};
     QLineEdit mac, name;
     QString oldmac, oldname;
     
@@ -84,7 +84,7 @@ public:
 };
 
 UserEntry::UserEntry(QString mac_str, QString name_str, QWidget* parent)
-         : QWidget{parent}, mac{mac_str, this}, name{name_str, this}
+         : QWidget{parent}, mac{mac_str, this}, name{name_str, this}, oldmac{mac_str}, oldname{name_str}
 {
     mac.setFrame(false); name.setFrame(false);
     mac.setMaxLength(17); name.setMaxLength(35);
@@ -93,10 +93,11 @@ UserEntry::UserEntry(QString mac_str, QString name_str, QWidget* parent)
     del_btn.setMaximumHeight(35); edit_btn.setMaximumHeight(35);
     del_btn.setFlat(true); edit_btn.setFlat(true);
     
+    mac.setFont(QFont{"Monospace"});
     mac.setAlignment(Qt::AlignCenter);
+    
     layout.setSpacing(2);
     layout.setContentsMargins(4,1,4,1);
-    
     layout.addWidget(&mac, 3); layout.addWidget(&name, 5);
     layout.addWidget(&del_btn); layout.addWidget(&edit_btn);
     

@@ -72,6 +72,9 @@ int main(int argc, char* argv[])
     delete_icon  = new QIcon{"delete.png"};
     confirm_icon = new QIcon{"confirm.png"};
     
+    curl_global_init(CURL_GLOBAL_ALL);
+    std::atexit(curl_global_cleanup);
+    
     auto show_dialog = [](const QString& text)
     {
         QMessageBox::warning(nullptr, "Error", text);

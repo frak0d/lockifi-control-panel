@@ -29,10 +29,11 @@ std::pair<long, std::string> get(QString url, long timeout_ms=1000)
         res = curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT_MS, timeout_ms);
         if (res != CURLE_OK) goto curl_error;
         
-        res = curl_easy_setopt(curl, CURLOPT_URL, url.toStdString().c_str());
+        auto url2 = url.toStdString();//keep lifetime for surity
+        res = curl_easy_setopt(curl, CURLOPT_URL, url2.c_str());
         if (res != CURLE_OK) goto curl_error;
         
-        res = curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, []        
+        res = curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, +[] // unary + decays lambda to function ptr
         // callback may be called multiple times with partial data
         (void* in_ptr, size_t size_elem, size_t num_elem, void* out_ptr)
         {
@@ -59,10 +60,11 @@ std::pair<long, std::string> get(QString url, long timeout_ms=1000)
         curl_easy_cleanup(curl);
         return {code, body};
     }
-    else throw std::runtime_error{"lockifi::http::get : libcurl initialization faliure"};
+    else throw std::runtime_error{"lockifi::http::get -> libcurl initialization faliure"};
     
 curl_error:
-    throw std::runtime_error{"lockifi::http::get : "s + curl_easy_strerror(res)};
+    curl_easy_cleanup(curl);
+    throw std::runtime_error{"lockifi::http::get -> "s + curl_easy_strerror(res)};
 }
 
 }
@@ -117,13 +119,13 @@ QString check_user(QString lock_ip, QString mac)
 auto user_list(QString lock_ip)
 {
     validate_ip(lock_ip);
-    std::map<QString, QString> user_list;
     auto [code,body] = http::get("http://"+lock_ip+"/user_list");
     
     if (code == 200)
     {
         std::string line,mac,name;
         std::stringstream ss{body};
+        std::map<QString, QString> user_list;
         
         while (std::getline(ss, line))
         {
@@ -131,8 +133,11 @@ auto user_list(QString lock_ip)
             name = line.substr(18);
             user_list[mac.c_str()] = name.c_str();
         }
+        
+        return user_list;
     }
-    return user_list;
+    else throw std::runtime_error{"lockifi: unable to fetch user list, code "+std::to_string(code)+" returned"};
+    
 }
 
 std::string access_logs(QString lock_ip)
