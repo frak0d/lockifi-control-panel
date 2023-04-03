@@ -65,15 +65,17 @@ int main(int argc, char* argv[])
     QMainWindow window;
     ui.setupUi(&window);
     
+    curl_global_init(CURL_GLOBAL_ALL);
+    std::atexit(curl_global_cleanup);    
+    
     UserList user_list{ui.scroll_area_contents};
+    ui.level_input->addItems({"   Admin","   Third","   Half","   Full","   Ultra"});
+    ui.level_input->setCurrentIndex(3);;
     
     edit_icon    = new QIcon{"edit.png"};
     cancel_icon  = new QIcon{"cancel.png"};
     delete_icon  = new QIcon{"delete.png"};
     confirm_icon = new QIcon{"confirm.png"};
-    
-    curl_global_init(CURL_GLOBAL_ALL);
-    std::atexit(curl_global_cleanup);
     
     auto show_dialog = [](const QString& text)
     {
@@ -108,7 +110,8 @@ int main(int argc, char* argv[])
     
     auto update_add_user_btn = [&]()
     {
-        ui.add_user_btn->setEnabled(is_valid_mac(ui.mac_input->text()) and is_valid_name(ui.name_input->text()));
+        ui.add_user_btn->setEnabled(is_valid_mac(ui.mac_input->text()) and
+                                    is_valid_name(ui.name_input->text()));
     };
     
     QObject::connect(ui.mac_input, &QLineEdit::textEdited, update_add_user_btn);
@@ -118,8 +121,8 @@ int main(int argc, char* argv[])
     {
         try
         {
-            lockifi::add_user(lock_ip, ui.mac_input->text(), ui.name_input->text());
-            user_list.add(new UserEntry{ui.mac_input->text(), ui.name_input->text()});
+            lockifi::add_user(lock_ip, ui.mac_input->text(), ui.name_input->text(), ui.level_input->currentIndex());
+            user_list.add(ui.mac_input->text(), ui.name_input->text(), ui.level_input->currentIndex());
             ui.mac_input->clear(); ui.name_input->clear();
         }
         catch (std::exception& e) {show_dialog(e.what());}
@@ -132,9 +135,9 @@ int main(int argc, char* argv[])
         user_list.clear();
         try
         {
-            for (const auto& [mac, name] : lockifi::user_list(lock_ip))
+            for (const auto& [mac, name, level] : lockifi::user_list(lock_ip))
             {
-                user_list.add(mac, name);
+                user_list.add(mac, name, level);
             }
         }
         catch (std::exception& e)
@@ -217,5 +220,6 @@ int main(int argc, char* argv[])
     ///////////////////////////////////////////////////////////////////////////
     
     window.show();
+    ui.scan_btn->click();
     return app.exec();
 }

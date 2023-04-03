@@ -1,6 +1,6 @@
 #pragma once
 
-#include <map>
+#include <vector>
 #include <string>
 #include <cstring>
 #include <sstream>
@@ -86,12 +86,12 @@ bool ping(QString lock_ip) noexcept
     catch(...) {return false;}
 }
 
-void add_user(QString lock_ip, QString mac, QString name)
+void add_user(QString lock_ip, QString mac, QString name, uint8_t level)
 {
     validate_ip(lock_ip); mac.replace(':',""); name.replace(' ', '~');
-    auto [code,body] = http::get("http://"+lock_ip+"/add_user?mac="+mac+"&name="+name);
+    auto [code,body] = http::get("http://"+lock_ip+"/add_user?mac="+mac+"&name="+name+"&lvl="+QString("%1").arg((int)level));
     
-    if (not (code == 200 and body == "ok"))
+    if (not (code == 200 and body == "OK"))
         throw std::runtime_error{"lockifi::add_user -> Error Adding User\n"
                                  "code = "+std::to_string(code)+"\n"
                                  "body = "+body+'\n'};
@@ -102,7 +102,7 @@ void remove_user(QString lock_ip, QString mac)
     validate_ip(lock_ip); mac.replace(':',"");
     auto [code,body] = http::get("http://"+lock_ip+"/remove_user?mac="+mac);
     
-    if (not (code == 200 and body == "ok"))
+    if (not (code == 200 and body == "OK"))
         throw std::runtime_error{"lockifi::remove_user -> Error Removing User\n"
                                  "code = "+std::to_string(code)+"\n"
                                  "body = "+body+'\n'};
@@ -123,15 +123,17 @@ auto user_list(QString lock_ip)
     
     if (code == 200)
     {
+        uint8_t level;
         std::string line,mac,name;
         std::stringstream ss{body};
-        std::map<QString, QString> user_list;
+        std::vector<std::tuple<QString, QString, uint8_t>> user_list;
         
         while (std::getline(ss, line))
         {
-            mac  = line.substr(0,17);
-            name = line.substr(18);
-            user_list[mac.c_str()] = name.c_str();
+            level = line[0] - '0';
+            mac   = line.substr(2,19);
+            name  = line.substr(20);
+            user_list.emplace_back(mac.c_str(), name.c_str(), level);
         }
         
         return user_list;
