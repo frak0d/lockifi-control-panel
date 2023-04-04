@@ -84,7 +84,7 @@ int main(int argc, char* argv[])
     
     ///////////////////////////////////////////////////////////////////////////
     
-    QObject::connect(ui.scan_btn, &QPushButton::clicked, [&]()
+    QObject::connect(ui.scan_btn, &QPushButton::clicked, [&]
     {
         QStringList online_locks;
         
@@ -99,16 +99,21 @@ int main(int argc, char* argv[])
                 if (results[i].get()) online_locks.push_back(ip_prefix.arg(i));
         }
         
+        ui.ip_combobox->blockSignals(true);
         ui.ip_combobox->clear();
+        ui.ip_combobox->blockSignals(false);
         ui.ip_combobox->addItems(online_locks);
     });
     
-    QObject::connect(ui.ip_combobox, &QComboBox::currentTextChanged, [](const QString& ip)
-                                                                        {lock_ip = ip;});
+    QObject::connect(ui.ip_combobox, QOverload<int>::of(&QComboBox::currentIndexChanged), [&](int index)
+    {
+        lock_ip = ui.ip_combobox->itemText(index);
+        ui.refresh_btn->click();
+    });
     
     ///////////////////////////////////////////////////////////////////////////
     
-    auto update_add_user_btn = [&]()
+    auto update_add_user_btn = [&]
     {
         ui.add_user_btn->setEnabled(is_valid_mac(ui.mac_input->text()) and
                                     is_valid_name(ui.name_input->text()));
@@ -117,7 +122,7 @@ int main(int argc, char* argv[])
     QObject::connect(ui.mac_input, &QLineEdit::textEdited, update_add_user_btn);
     QObject::connect(ui.name_input, &QLineEdit::textEdited, update_add_user_btn);
     
-    QObject::connect(ui.add_user_btn, &QPushButton::clicked, [&]()
+    QObject::connect(ui.add_user_btn, &QPushButton::clicked, [&]
     {
         try
         {
@@ -130,7 +135,7 @@ int main(int argc, char* argv[])
     
     ///////////////////////////////////////////////////////////////////////////
     
-    QObject::connect(ui.refresh_btn, &QPushButton::clicked, [&]()
+    QObject::connect(ui.refresh_btn, &QPushButton::clicked, [&]
     {
         user_list.clear();
         try
@@ -146,7 +151,7 @@ int main(int argc, char* argv[])
         }
     });
     
-    QObject::connect(ui.reset_btn, &QPushButton::clicked, [&]()
+    QObject::connect(ui.reset_btn, &QPushButton::clicked, [&]
     {
         int error_count = 0;
         const int error_threshold = 2*user_list.entries.size();
@@ -168,7 +173,7 @@ int main(int argc, char* argv[])
         }
     });
     
-    QObject::connect(ui.save_csv_btn, &QPushButton::clicked, [&]()
+    QObject::connect(ui.save_csv_btn, &QPushButton::clicked, [&]
     {
         auto fname = QFileDialog::getSaveFileName(nullptr,{},{},"CSV File(*.csv)");
         if (!fname.isNull())
@@ -177,7 +182,7 @@ int main(int argc, char* argv[])
         }
     });
     
-    QObject::connect(ui.load_csv_btn, &QPushButton::clicked, [&]()
+    QObject::connect(ui.load_csv_btn, &QPushButton::clicked, [&]
     {
         auto fname = QFileDialog::getOpenFileName(nullptr,{},{},"CSV File(*.csv)");
         if (!fname.isNull())
@@ -188,13 +193,13 @@ int main(int argc, char* argv[])
     
     ///////////////////////////////////////////////////////////////////////////
     
-    QObject::connect(ui.get_log_btn, &QPushButton::clicked, [&]()
+    QObject::connect(ui.get_log_btn, &QPushButton::clicked, [&]
     {
         auto logdata = lockifi::access_logs(lock_ip);
         //TODO: parse log data and populate gui
     });
     
-    QObject::connect(ui.save_log_btn, &QPushButton::clicked, [&]()
+    QObject::connect(ui.save_log_btn, &QPushButton::clicked, [&]
     {
         auto fname = QFileDialog::getSaveFileName(nullptr,{},{},"Text File(*.txt)");
         if (!fname.isNull())
@@ -212,7 +217,7 @@ int main(int argc, char* argv[])
         }
     });
     
-    QObject::connect(ui.save_log_btn, &QPushButton::clicked, [&]()
+    QObject::connect(ui.save_log_btn, &QPushButton::clicked, [&]
     {
         //
     });
