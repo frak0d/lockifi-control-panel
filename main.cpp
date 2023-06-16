@@ -130,7 +130,7 @@ int main(int argc, char* argv[])
             user_list.add(ui.mac_input->text(), ui.name_input->text(), ui.level_input->currentIndex());
             ui.mac_input->clear(); ui.name_input->clear();
         }
-        catch (std::exception& e) {show_dialog(e.what());}
+        catch (const std::exception& e) {show_dialog(e.what());}
     });
     
     ///////////////////////////////////////////////////////////////////////////
@@ -138,14 +138,22 @@ int main(int argc, char* argv[])
     QObject::connect(ui.refresh_btn, &QPushButton::clicked, [&]
     {
         user_list.clear();
+        
         try
         {
-            for (const auto& [mac, name, level] : lockifi::user_list(lock_ip))
+            auto sorted_user_list =  lockifi::user_list(lock_ip);
+            
+            std::ranges::sort(sorted_user_list, [](const auto& user1, const auto& user2)
+            {
+                return std::get<1>(user1) < std::get<1>(user2); //alphabetically sort names
+            });
+            
+            for (const auto& [mac, name, level] : sorted_user_list)
             {
                 user_list.add(mac, name, level);
             }
         }
-        catch (std::exception& e)
+        catch (const std::exception& e)
         {
             show_dialog(e.what());
         }
@@ -171,23 +179,85 @@ int main(int argc, char* argv[])
                 break;
             }
         }
+        
+        ui.refresh_btn->click();
     });
     
     QObject::connect(ui.save_csv_btn, &QPushButton::clicked, [&]
     {
-        auto fname = QFileDialog::getSaveFileName(nullptr,{},{},"CSV File(*.csv)");
-        if (!fname.isNull())
+        auto fname = QFileDialog::getSaveFileName(nullptr,{},{},"Lockifi Database(*.csv)");
+        
+        if (!fname.isNull()) try
         {
-            //proceed
+            std::ofstream db{fname.toStdString()};
+            
+            for (const UserEntry* entry : user_list.entries)
+            {
+                db << entry->getLevel() << ','
+                   << entry->getMac().toStdString() << ','
+                   << entry->getName().toStdString() << '\n';
+            }
+        }
+        catch (const std::exception& e)
+        {
+            show_dialog(e.what());
         }
     });
     
     QObject::connect(ui.load_csv_btn, &QPushButton::clicked, [&]
     {
-        auto fname = QFileDialog::getOpenFileName(nullptr,{},{},"CSV File(*.csv)");
-        if (!fname.isNull())
+        auto fname = QFileDialog::getOpenFileName(nullptr,{},{},"Lockifi Database(*.csv)");
+        
+        if (!fname.isNull()) try
         {
-            //proceed
+            std::stringstream db;
+            std::ifstream f{fname.toStdString()};
+            
+            db << f.rdbuf();
+            
+            std::string line,mac,name,level;
+            
+            auto trim = [](std::string& s, const char* t = " \t\n\r\f\v")
+            {
+                s.erase(0, s.find_first_not_of(t));
+                s.erase(s.find_last_not_of(t) + 1);
+            };
+            
+            int error_count{0};
+            
+            while (std::getline(db, line)) try
+            {
+                trim(line);
+                if (line.empty()) continue;
+                
+                std::stringstream ss;
+                ss << line;
+                
+                std::getline(ss, level, ',');
+                std::getline(ss, mac  , ',');
+                std::getline(ss, name , ',');
+                
+                trim(level); trim(mac); trim(name);
+                
+                if (is_valid_mac(mac.c_str()) and is_valid_name(name.c_str())) try
+                {
+                    lockifi::add_user(lock_ip, mac.c_str(), name.c_str(), std::stoul(level));
+                }
+                catch(...){++error_count;}
+            }
+            catch (const std::exception& e)
+            {
+                std::cerr << e.what() << std::endl;
+            }
+            
+            if (error_count > 0)
+                show_dialog(QString("%1 Errors Occured!").arg(error_count));
+            
+            ui.refresh_btn->click();
+        }
+        catch (const std::exception& e)
+        {
+            show_dialog(e.what());
         }
     });
     
@@ -210,9 +280,9 @@ int main(int argc, char* argv[])
                 std::ofstream file{fname.toStdString(), std::ios::binary};
                 if (!file.bad()) file.write(logdata.data(), logdata.size());
             }
-            catch (...)
+            catch (const std::exception& e)
             {
-                //show error
+                show_dialog(e.what());
             }
         }
     });

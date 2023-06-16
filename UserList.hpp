@@ -60,13 +60,21 @@ class UserEntry : public QWidget
     
 public:
     UserEntry(QString mac_str, QString name_str, uint8_t usr_lvl, QWidget* parent=nullptr);
-    QString getMac()  const {return  mac.text();}
+    
+    QString getMac() const {return mac.text();}
+    uint getLevel() const {return level.currentIndex();}
     QString getName() const {return name.text();}
 };
 
 class UserList : public QWidget
 {
     QVBoxLayout scrollbox;
+    
+    void add(UserEntry* entry)
+    {
+        entries.push_back(entry);
+        scrollbox.addWidget(entry);
+    }
     
 public:
     std::vector<UserEntry*> entries;
@@ -77,12 +85,6 @@ public:
         scrollbox.setAlignment(Qt::AlignTop);
         scrollbox.setSpacing(0);
         scrollbox.setContentsMargins(0,0,0,0);
-    }
-    
-    void add(UserEntry* entry)
-    {
-        entries.push_back(entry);
-        scrollbox.addWidget(entry);
     }
     
     void add(QString mac, QString name, uint8_t level)
