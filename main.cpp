@@ -183,6 +183,8 @@ int main(int argc, char* argv[])
         ui.refresh_btn->click();
     });
     
+    ///////////////////////////////////////////////////////////////////////////
+    
     QObject::connect(ui.save_csv_btn, &QPushButton::clicked, [&]
     {
         auto fname = QFileDialog::getSaveFileName(nullptr,{},{},"Lockifi Database(*.csv)");
@@ -223,7 +225,7 @@ int main(int argc, char* argv[])
                 s.erase(s.find_last_not_of(t) + 1);
             };
             
-            int error_count{0};
+            int total_count{0}, error_count{0};
             
             while (std::getline(db, line)) try
             {
@@ -237,7 +239,7 @@ int main(int argc, char* argv[])
                 std::getline(ss, mac  , ',');
                 std::getline(ss, name , ',');
                 
-                trim(level); trim(mac); trim(name);
+                trim(level); trim(mac); trim(name); ++total_count;
                 
                 if (is_valid_mac(mac.c_str()) and is_valid_name(name.c_str())) try
                 {
@@ -250,8 +252,8 @@ int main(int argc, char* argv[])
                 std::cerr << e.what() << std::endl;
             }
             
-            if (error_count > 0)
-                show_dialog(QString("%1 Errors Occured!").arg(error_count));
+            show_dialog(QString("processed %1 entries\n"
+                                "and got %2 error cases").arg(total_count, error_count));
             
             ui.refresh_btn->click();
         }
@@ -265,8 +267,15 @@ int main(int argc, char* argv[])
     
     QObject::connect(ui.get_log_btn, &QPushButton::clicked, [&]
     {
-        auto logdata = lockifi::access_logs(lock_ip);
-        //TODO: parse log data and populate gui
+        try
+        {
+            auto logdata = lockifi::access_logs(lock_ip);
+            ui.log_view->setText(logdata.c_str());
+        }
+        catch (const std::exception& e)
+        {
+            show_dialog(e.what());
+        }
     });
     
     QObject::connect(ui.save_log_btn, &QPushButton::clicked, [&]
@@ -287,11 +296,6 @@ int main(int argc, char* argv[])
         }
     });
     
-    QObject::connect(ui.save_log_btn, &QPushButton::clicked, [&]
-    {
-        //
-    });
-
     ///////////////////////////////////////////////////////////////////////////
     
     window.show();

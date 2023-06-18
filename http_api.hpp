@@ -7,7 +7,6 @@
 #include <QString>
 
 #include <curl/curl.h>
-#include "validity.hpp"
 
 namespace lockifi
 {
@@ -71,8 +70,8 @@ curl_error:
 
 inline void validate_ip(const QString& ipv4_str)
 {
-    if (not is_valid_ip(ipv4_str))
-        throw std::runtime_error{"invalid ip selected"};
+    if (ipv4_str.isEmpty())
+        throw std::runtime_error{"ip not selected!"};
 }
 
 bool ping(QString lock_ip) noexcept

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.20)
-project(lockifi-control-panel LANGUAGES CXX)
+project(lockifi-cp LANGUAGES CXX)
 
 set(CMAKE_AUTOUIC ON)
 set(CMAKE_CXX_STANDARD 20)
@@ -11,8 +11,8 @@ elseif (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
   add_compile_options("/W4")
 endif()
 
-add_executable(lockifi-control-panel main.cpp)
+add_executable(lockifi-cp main.cpp)
 
 find_package(CURL REQUIRED)
 find_package(Qt5 REQUIRED COMPONENTS Core Widgets Network)
-target_link_libraries(lockifi-control-panel Qt::Core Qt::Widgets Qt::Network curl)
+target_link_libraries(lockifi-cp Qt::Core Qt::Widgets Qt::Network curl)
