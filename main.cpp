@@ -72,10 +72,10 @@ int main(int argc, char* argv[])
     ui.level_input->addItems({"   Admin","   Third","   Half","   Full","   Ultra"});
     ui.level_input->setCurrentIndex(3);;
     
-    edit_icon    = new QIcon{"edit.png"};
-    cancel_icon  = new QIcon{"cancel.png"};
-    delete_icon  = new QIcon{"delete.png"};
-    confirm_icon = new QIcon{"confirm.png"};
+    edit_icon    = new QIcon{"/usr/share/lockifi/edit.png"};
+    cancel_icon  = new QIcon{"/usr/share/lockifi/cancel.png"};
+    delete_icon  = new QIcon{"/usr/share/lockifi/delete.png"};
+    confirm_icon = new QIcon{"/usr/share/lockifi/confirm.png"};
     
     auto show_dialog = [](const QString& text)
     {

@@ -57,6 +57,7 @@ std::pair<long, std::string> get(QString url, long timeout_ms=1000)
         if (res != CURLE_OK) goto curl_error;
         
         curl_easy_cleanup(curl);
+        std::printf("\n---%ld---\n%s---------\n", code, body.c_str());
         return {code, body};
     }
     else throw std::runtime_error{"lockifi::http::get -> libcurl initialization faliure"};
